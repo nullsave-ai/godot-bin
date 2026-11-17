@@ -1,0 +1,23 @@
+name: Rehost Godot ARM64
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rehost:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download and split
+        run: |
+          curl -sL -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.arm64.zip
+          sha256sum godot.zip > parts/SHA256.txt || (mkdir parts && sha256sum godot.zip > parts/SHA256.txt)
+          split -b 18m -d godot.zip parts/gpart.
+          rm -f godot.zip
+          ls -la parts/
+      - name: Commit and push
+        run: |
+          git config user.name rehost-bot
+          git config user.email bot@noreply
+          git add parts
+          git commit -m "parts $(date -u +%H%M%S)"
+          git push
